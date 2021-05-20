@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+</head>
+
+<body>
+  <script type="module">
+    import { stringify } from "https://jspm.dev/telejson";
+
+    window.addEventListener("message", async function (__sandbox_e$) {
+      console.log = (...args) => {
+        const stacktrace = new Error();
+        __sandbox_e$.source.postMessage(
+          {
+            source: "snippet-console",
+            type: "log",
+            output: stringify(args),
+            stack: stacktrace.stack
+          },
+          __sandbox_e$.origin
+        );
+      };
+
+      const __sandbox_i$ = URL.createObjectURL(
+        new Blob(__sandbox_e$.data, { type: "text/javascript" })
+      );
+
+      try {
+        const __sandbox_md$ = await import(__sandbox_i$);
+      } catch (e) {
+        // Error
+      }
+    });
+  </script>
+</body>
+
+</html>
