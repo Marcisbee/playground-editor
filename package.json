@@ -7,16 +7,9 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@swc/wasm": "^1.2.57",
-    "@swc/wasm-web": "^1.2.57",
-    "assert": "^2.0.0",
-    "babylon": "^6.18.0",
-    "esbuild-wasm": "^0.12.1",
     "exome": "^0.10.1",
-    "ftst": "^1.2.2",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
-    "recast": "^0.20.4",
     "stacktracey": "^2.1.7",
     "telejson": "^5.3.3"
   },
