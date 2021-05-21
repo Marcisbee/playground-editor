@@ -35,11 +35,19 @@ export class Workspace extends Exome {
       snippet.output = [];
     });
 
-    runSandboxIframe(codeToEvaluate, (output, position) => {
-      if (position && position.index > -1) {
-        this.snippets[position.index].addOutput(output);
+    runSandboxIframe(
+      codeToEvaluate,
+      (output, position) => {
+        if (position && position.index > -1) {
+          this.snippets[position.index].addOutput(output);
+        }
+      },
+      (output) => {
+        this.snippets.forEach((snippet) => {
+          snippet.clearCache();
+        });
       }
-    });
+    );
   }
 }
 
@@ -64,6 +72,10 @@ export class Snippet extends Exome {
     this.output.push(output);
 
     // Clear cache
+    this.cachedOutput = [];
+  }
+
+  public clearCache() {
     this.cachedOutput = [];
   }
 }

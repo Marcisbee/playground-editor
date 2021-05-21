@@ -6,6 +6,9 @@ type SandboxData = {
   type: "log" | "warn" | "error";
   output: string;
   stack: string;
+} | {
+  source: "snippet-end";
+  output: string;
 };
 
 interface CustomHTMLIframeElement extends HTMLIFrameElement {
@@ -74,11 +77,12 @@ function transformCode(code: string): string {
 
 export function runSandboxIframe(
   code: string[],
-  cb: (
+  onLog: (
     output: any[],
     position: { index: number; line: number; column: number } | null,
     type: string
-  ) => void
+  ) => void,
+  onEnd?: (output: any[]) => void,
 ) {
   const parsedCode = code.map(transformCode);
 
@@ -107,8 +111,18 @@ export function runSandboxIframe(
         }
         : null;
 
-      cb(parsedData, position, e.data.type);
+      onLog(parsedData, position, e.data.type);
       console.log("RECEIVE", e.data.type, ...parsedData, position);
+      return;
+    }
+
+    if (e.data.source === "snippet-end") {
+      const parsedData = parseJSON(e.data.output);
+
+      onEnd && onEnd(parsedData);
+
+      console.log("END", parsedData);
+      return;
     }
   }
 

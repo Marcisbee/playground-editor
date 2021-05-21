@@ -1,3 +1,4 @@
+import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import reactRefresh from '@vitejs/plugin-react-refresh'
 
@@ -11,5 +12,13 @@ export default defineConfig({
     },
     global: {},
   },
-  plugins: [reactRefresh()]
+  plugins: [reactRefresh()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        frame: resolve(__dirname, 'frame.html')
+      }
+    }
+  }
 })
