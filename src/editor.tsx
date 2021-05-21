@@ -69,6 +69,10 @@ export function Editor({ value, onChange }: EditorProps) {
 
     updateHeight();
 
+    // monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      
+    // });
+
     async function onCodeChange(event?: monaco.editor.IModelContentChangedEvent) {
       if (event !== void 0) {
         // updateHash();

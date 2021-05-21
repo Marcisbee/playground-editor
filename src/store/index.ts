@@ -1,6 +1,9 @@
-import { Exome } from "exome";
+import { addMiddleware, Exome } from "exome";
+import { exomeDevtools } from "exome/devtools";
 
 import { runSandboxIframe } from "../sandbox";
+
+addMiddleware(exomeDevtools({ name: 'Test' }));
 
 class Store extends Exome {
   public active: Workspace | null = null;
