@@ -45,6 +45,8 @@ monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
   typeRoots: ["node_modules/@types"],
 });
 
+const preloadedModules: Record<string, boolean> = {};
+
 function extractPackages(code: string): string[] {
   const IMPORTS_REGEX = /import\s+?(?:(?:(?:[\w*\s{},]*)\s+from\s+?)|)((?:".*?")|(?:'.*?'))[\s]*?(?:;|$|)/g;
   const packageNames: string[] = [];
@@ -59,6 +61,19 @@ function extractPackages(code: string): string[] {
     }
 
     packageNames.push(packageName);
+
+    if (preloadedModules[packageName]) {
+      continue;
+    }
+
+    preloadedModules[packageName] = true;
+
+    const link = document.createElement('link');
+
+    link.setAttribute('rel', 'modulepreload');
+    link.href = `https://jspm.dev/${packageName}`;
+
+    document.head.appendChild(link);
   }
 
   return packageNames;
@@ -74,13 +89,14 @@ async function installTypes(code: string) {
       return;
     }
 
-    console.log('Installing...', packageName);
+    console.log(`Installing types for "${packageName}"...`);
+    console.time(`Installed types for "${packageName}"`);
     const types = await fetchTypes(packageName);
 
     installedTypes[packageName] = types.reduce((acc, type) => acc + '\n' + type.content, '');
 
     monaco.languages.typescript.typescriptDefaults.addExtraLib(installedTypes[packageName], `file:///node_modules/@types/${packageName}/index.d.ts`);
-    console.log('Installed', packageName, installedTypes[packageName]);
+    console.timeEnd(`Installed types for "${packageName}"`);
   }));
   
   console.log('All types installed');
