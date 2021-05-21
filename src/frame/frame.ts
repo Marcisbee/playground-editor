@@ -39,6 +39,7 @@ window.addEventListener("message", async function (__sandbox_e$) {
 
     (console as any).end(__sandbox_md$);
   } catch (e) {
+    console.error(e)
     // Error
   }
 });

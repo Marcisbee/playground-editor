@@ -7,6 +7,8 @@ import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 // import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
+import { fetchTypes } from '../utils/types-fetcher';
+
 let resolveTsWorkerState: Function | null = null;
 const tsWorkerLoaded = new Promise((resolve) => { resolveTsWorkerState = resolve; });
 
@@ -31,19 +33,69 @@ self.MonacoEnvironment = {
 }
 
 interface EditorProps {
+  id: string;
   value: string;
   onChange: (original: string, transpiled: string) => void;
 }
 
-export function Editor({ value, onChange }: EditorProps) {
+monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+  ...monaco.languages.typescript.typescriptDefaults.getCompilerOptions(),
+  target: monaco.languages.typescript.ScriptTarget.ES2015,
+  allowSyntheticDefaultImports: true,
+  typeRoots: ["node_modules/@types"],
+});
+
+function extractPackages(code: string): string[] {
+  const IMPORTS_REGEX = /import\s+?(?:(?:(?:[\w*\s{},]*)\s+from\s+?)|)((?:".*?")|(?:'.*?'))[\s]*?(?:;|$|)/g;
+  const packageNames: string[] = [];
+
+  let match;
+
+  while ((match = IMPORTS_REGEX.exec(code)) !== null) {
+    const packageName = match[1].replace(/["' ]+/g, "");
+
+    if (/https?:|\/\/|\.\//.test(packageName)) {
+      continue;
+    }
+
+    packageNames.push(packageName);
+  }
+
+  return packageNames;
+}
+
+const installedTypes: Record<string, string> = {};
+
+async function installTypes(code: string) {
+  const packageNames = await extractPackages(code);
+
+  await Promise.all(packageNames.map(async (packageName) => {
+    if (installedTypes[packageName]) {
+      return;
+    }
+
+    console.log('Installing...', packageName);
+    const types = await fetchTypes(packageName);
+
+    installedTypes[packageName] = types.reduce((acc, type) => acc + '\n' + type.content, '');
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(installedTypes[packageName], `file:///node_modules/@types/${packageName}/index.d.ts`);
+    console.log('Installed', packageName, installedTypes[packageName]);
+  }));
+  
+  console.log('All types installed');
+}
+
+export function Editor({ id, value, onChange }: EditorProps) {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const width = 500;
     const container = ref.current!;
 
+    const model = monaco.editor.createModel(value, 'typescript', monaco.Uri.parse(`file:///${id}.tsx`));
     const editor = monaco.editor.create(container, {
-      value,
+      model,
       language: 'typescript',
       scrollBeyondLastLine: false,
       wordWrap: 'on',
@@ -69,10 +121,6 @@ export function Editor({ value, onChange }: EditorProps) {
 
     updateHeight();
 
-    // monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-      
-    // });
-
     async function onCodeChange(event?: monaco.editor.IModelContentChangedEvent) {
       if (event !== void 0) {
         // updateHash();
@@ -81,7 +129,9 @@ export function Editor({ value, onChange }: EditorProps) {
 
       // showProcessingIndicator();
 
-      const model = editor.getModel()!;
+      // const model = editor.getModel()!;
+
+      installTypes(model.getValue());
 
       const output = await getService()
         .then((service) => {
@@ -112,11 +162,11 @@ export function Editor({ value, onChange }: EditorProps) {
     function getService() {
       return monaco.languages.typescript
         .getTypeScriptWorker()
-        .then((worker) => worker(editor.getModel()!.uri));
+        .then((worker) => worker(model.uri));
     }
 
     return () => {
-      editor.getModel()!.dispose();
+      model.dispose();
       editor.dispose();
     }
   }, []);

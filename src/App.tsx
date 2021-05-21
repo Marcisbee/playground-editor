@@ -1,7 +1,7 @@
 import { useStore } from "exome/react";
 import React from "react";
 
-import { Editor } from "./editor";
+import { Editor } from "./components/editor";
 import { Snippet, store, Workspace } from "./store";
 
 interface SnippetProps {
@@ -9,12 +9,13 @@ interface SnippetProps {
 }
 
 function SnippetComponent({ snippet }: SnippetProps) {
-  const { code, setCode, output, cachedOutput } = useStore(snippet);
+  const { id, code, setCode, output, cachedOutput } = useStore(snippet);
   const isCached = cachedOutput.length > output.length;
 
   return (
     <div>
       <Editor
+        id={String(id)}
         value={code}
         onChange={setCode}
       />
