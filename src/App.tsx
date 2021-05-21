@@ -1,6 +1,7 @@
 import { useStore } from "exome/react";
 import React from "react";
 
+import { Editor } from "./editor";
 import { Snippet, store, Workspace } from "./store";
 
 interface SnippetProps {
@@ -11,18 +12,15 @@ function SnippetComponent({ snippet }: SnippetProps) {
   const { code, setCode, output, cachedOutput } = useStore(snippet);
   const isCached = cachedOutput.length > output.length;
 
-  function onChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setCode(e.target.value);
-  }
-
   return (
     <div>
-      <textarea style={{ width: 400, height: 100 }} onChange={onChange}>
-        {code}
-      </textarea>
+      <Editor
+        value={code}
+        onChange={setCode}
+      />
       <ul style={{ opacity: isCached ? 0.5 : 1 }}>
-        {(isCached ? cachedOutput : output).map((out) => (
-          <li>{JSON.stringify(out)}</li>
+        {(isCached ? cachedOutput : output).map((out, index) => (
+          <li key={index}>{JSON.stringify(out)}</li>
         ))}
       </ul>
     </div>

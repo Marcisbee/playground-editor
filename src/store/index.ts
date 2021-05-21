@@ -27,7 +27,7 @@ export class Workspace extends Exome {
   }
 
   public evaluate() {
-    const codeToEvaluate = this.snippets.map((snippet) => snippet.code);
+    const codeToEvaluate = this.snippets.map((snippet) => snippet.transpiled);
 
     this.snippets.forEach((snippet) => {
       // Don't activate change detection
@@ -48,12 +48,16 @@ export class Snippet extends Exome {
   public output: any[] = [];
   public cachedOutput: any[] = [];
 
-  constructor(public code: string = "") {
+  constructor(
+    public code: string = "",
+    public transpiled: string = '',
+  ) {
     super();
   }
 
-  public setCode(code: string) {
+  public setCode(code: string, transpiled: string) {
     this.code = code;
+    this.transpiled = transpiled;
   }
 
   public addOutput(output: any) {
@@ -69,7 +73,7 @@ export const store = new Store();
 store.addWorkspace(
   new Workspace("first", [
     new Snippet(
-      'const foo = "Hello world";\nconsole.log("First");\nconsole.log("Second");'
+      'const foo: string = "Hello world" as const;\nconsole.log("First");\nconsole.log("Second");'
     ),
     new Snippet('import ms from "ms";\n\nconsole.log({ foo, value: ms(123) })')
   ])

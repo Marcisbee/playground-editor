@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "exome": "^0.10.1",
+    "monaco-editor": "^0.24.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "stacktracey": "^2.1.7",
