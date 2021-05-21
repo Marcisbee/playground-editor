@@ -37,7 +37,7 @@ function findSnippetIndex(
 
   if (!code) return -1;
 
-  const lineCount = code.split("\n").length + lineCountBefore;
+  const lineCount = code.split("\n").length - 1 + lineCountBefore;
 
   if (lineCount >= line) {
     return index;
